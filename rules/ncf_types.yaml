@@ -1,0 +1,56 @@
+# Valid NCF / e-NCF types accepted by scripts/check_invoices.py.
+# This file is the source of truth: if python-stdnum (stdnum.do.ncf) rejects a type
+# listed here, the checker trusts this file (stdnum may lag behind DGII changes).
+#
+# Flags used by the checker:
+#   requires_buyer_id: buyer RNC/cédula is mandatory (crédito fiscal)
+#   consumer:          meant for final consumers; a buyer with an RNC probably needed crédito fiscal
+#   usually_exempt:    normally issued without ITBIS (exempt or 0%)
+#   modifies:          credit/debit note; must reference the modified NCF (ncf_modificado)
+
+last_verified: "2026-10-07"
+
+sources:
+  - name: "DGII - Tipos de comprobantes fiscales"
+    url: "https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscales/Paginas/tiposComprobantes.aspx"
+  - name: "DGII - Guía Informativa sobre Comprobantes Fiscales (PDF)"
+    url: "https://dgii.gov.do/publicacionesOficiales/bibliotecaVirtual/contribuyentes/facturacion/Documents/Comprobantes%20Fiscales/2-Guia-Informativa-NCF.pdf"
+  - name: "DGII - Comprobantes Fiscales Electrónicos (e-CF)"
+    url: "https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscales/Paginas/comprobantesFiscalesElectronicos.aspx"
+  - name: "DGII - Aviso 24-19, estructura del e-NCF (PDF)"
+    url: "https://dgii.gov.do/publicacionesOficiales/avisosInformativos/Documents/2019/24-19.pdf"
+
+series:
+  B:
+    description: "NCF (comprobante fiscal impreso)"
+    length: 11            # B + 2-digit type + 8-digit sequence
+    sequence_digits: 8
+  E:
+    description: "e-NCF (comprobante fiscal electrónico)"
+    length: 13            # E + 2-digit type + 10-digit sequence
+    sequence_digits: 10
+
+types:
+  B:
+    "01": {name: "Factura de crédito fiscal", requires_buyer_id: true}
+    "02": {name: "Factura de consumo", consumer: true}
+    "03": {name: "Nota de débito", modifies: true}
+    "04": {name: "Nota de crédito", modifies: true}
+    "11": {name: "Comprobante de compras"}
+    "12": {name: "Registro único de ingresos"}
+    "13": {name: "Comprobante para gastos menores"}
+    "14": {name: "Comprobante para regímenes especiales", usually_exempt: true}
+    "15": {name: "Comprobante gubernamental"}
+    "16": {name: "Comprobante para exportaciones", usually_exempt: true}
+    "17": {name: "Comprobante para pagos al exterior"}
+  E:
+    "31": {name: "Factura de crédito fiscal electrónica", requires_buyer_id: true}
+    "32": {name: "Factura de consumo electrónica", consumer: true}
+    "33": {name: "Nota de débito electrónica", modifies: true}
+    "34": {name: "Nota de crédito electrónica", modifies: true}
+    "41": {name: "Compras electrónico"}
+    "43": {name: "Gastos menores electrónico"}
+    "44": {name: "Regímenes especiales electrónico", usually_exempt: true}
+    "45": {name: "Gubernamental electrónico"}
+    "46": {name: "Exportaciones electrónico", usually_exempt: true}
+    "47": {name: "Pagos al exterior electrónico"}

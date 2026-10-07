@@ -1,0 +1,27 @@
+# ITBIS rates accepted by scripts/check_invoices.py.
+# A rate of `null` means "exento" (exempt): no ITBIS may be charged on the line.
+# Update `last_verified` every time you re-check these values against DGII.
+# The checker prints a warning when last_verified is older than 90 days.
+
+rates:
+  general: 0.18       # Ley 253-12, art. 23
+  reducida: 0.16      # Código Tributario art. 343: listed products only (yogurt, butter, coffee, oils, sugar, cocoa...)
+  exportacion: 0.00   # exports are taxed at 0%
+  exento: null        # exempt goods/services (see DGII Guía #7)
+
+last_verified: "2026-10-07"
+
+sources:
+  - name: "DGII - ITBIS (página oficial)"
+    url: "https://dgii.gov.do/cicloContribuyente/obligacionesTributarias/principalesImpuestos/Paginas/Itbis.aspx"
+  - name: "DGII - Guía #7 ITBIS (PDF, tasas general y reducida)"
+    url: "https://dgii.gov.do/publicacionesOficiales/bibliotecaVirtual/contribuyentes/itbis/Documents/1-Guia%207%20-%20(ITBIS).pdf"
+  - name: "RSM - Dominican Republic Tax Reform: Law 30-26"
+    url: "https://www.rsm.global/dominicanrepublic/en/news/dominican-republic-tax-reform-law-30-26"
+
+note: >
+  Ley 30-26 (June 2026) added new ITBIS exemptions for selected goods, effective immediately. Published summaries of the reform don't list changes to the 18% / 16% rates, but this hasn't been confirmed against the law's text. This tool doesn't check product lists: if a product may now be exempt, or if you're unsure about a rate, confirm with your accountant.
+
+# Spanish version of `note`, shown to end users in the terminal summary and the report.
+nota_es: >
+  La Ley 30-26 (junio 2026) agregó nuevas exenciones de ITBIS para bienes seleccionados, con efecto inmediato. Los resúmenes publicados de la reforma no indican cambios en las tasas de 18% / 16%, pero esto no se ha confirmado contra el texto de la ley. Esta herramienta no revisa listas de productos: si un producto podría estar exento ahora, o si tienes dudas sobre una tasa, confírmalo con tu contador.
