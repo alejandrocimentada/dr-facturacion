@@ -40,6 +40,25 @@ a emitir facturas electrónicas (e-CF).
 
    El agente lo instala todo por ti. Cambia `facturas.xlsx` por el nombre de tu archivo.
 
+   <details>
+   <summary><b>¿No tienes un agente de IA? Así empiezas (5 minutos)</b></summary>
+
+   1. **Qué es un agente de IA:** un asistente, como Claude Code, que puede trabajar con archivos
+      en tu computadora: leerlos, ejecutar programas y explicarte los resultados.
+   2. **Abre la terminal** (la ventana donde se escriben comandos):
+      - Windows: presiona la tecla Windows, escribe "PowerShell" y ábrelo.
+      - Mac: presiona Cmd + Espacio, escribe "Terminal" y ábrela.
+   3. **Instala Claude Code** siguiendo la
+      [guía oficial de inicio rápido](https://code.claude.com/docs/es/quickstart) (pasos 1 y 2).
+      Necesitarás una cuenta de Claude; la guía explica qué planes incluyen Claude Code.
+   4. **Ve a la carpeta de tus facturas** en la terminal. Ejemplo:
+      - Windows: `cd "$HOME\Documents\Facturas"`
+      - Mac: `cd ~/Documents/Facturas`
+   5. **Escribe `claude`** y presiona Enter para abrir el agente. La primera vez te pedirá
+      iniciar sesión con tu cuenta de Claude. Luego pega el mensaje del paso 2.
+
+   </details>
+
 3. **Abre el reporte y corrige.** El agente crea un archivo nuevo llamado
    `facturas_reporte.xlsx` junto a tu archivo. Ábrelo y corrige las filas marcadas en
    rojo (errores). Las filas en naranja son advertencias: revísalas también.

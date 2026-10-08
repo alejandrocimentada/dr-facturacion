@@ -42,6 +42,25 @@ electronic invoices (e-CF).
    and then check my file facturas.xlsx".) The agent does the whole installation for you.
    Replace `facturas.xlsx` with the name of your file.
 
+   <details>
+   <summary><b>Don't have an AI agent? Start here (5 minutes)</b></summary>
+
+   1. **What an AI agent is:** an assistant, like Claude Code, that can work with files
+      on your computer: read them, run programs and explain the results to you.
+   2. **Open the terminal** (the window where you type commands):
+      - Windows: press the Windows key, type "PowerShell" and open it.
+      - Mac: press Cmd + Space, type "Terminal" and open it.
+   3. **Install Claude Code** by following the
+      [official quickstart guide](https://code.claude.com/docs/en/quickstart) (steps 1 and 2).
+      You'll need a Claude account; the guide explains which plans include Claude Code.
+   4. **Go to your invoices folder** in the terminal. For example:
+      - Windows: `cd "$HOME\Documents\Facturas"`
+      - Mac: `cd ~/Documents/Facturas`
+   5. **Type `claude`** and press Enter to open the agent. The first time, it will ask you
+      to sign in with your Claude account. Then paste the message from step 2.
+
+   </details>
+
 3. **Open the report and fix.** The agent creates a new file called `facturas_reporte.xlsx`
    next to your file. Open it and fix the rows marked in red (errors). Rows in orange are
    warnings: check those too.
