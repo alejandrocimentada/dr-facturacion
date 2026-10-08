@@ -1,16 +1,13 @@
 import datetime as dt
 import hashlib
 import shutil
-import sys
 from pathlib import Path
 
+import check_invoices as ci
 import pandas as pd
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "scripts"))
-
-import check_invoices as ci  # noqa: E402
 
 TODAY = dt.date(2026, 10, 7)
 RULES = ci.load_rules()
