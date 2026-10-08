@@ -4,70 +4,124 @@
 
 <p align="center"><strong>Revisa RNC, NCF/e-NCF e ITBIS de tus facturas en segundos, y recibe un reporte en Excel con cada problema explicado en español.</strong></p>
 
-**dr-facturacion** es una skill para agentes de IA (Claude Code, Codex y otros agentes
-compatibles con `SKILL.md`) que también funciona como comando independiente. Está pensada
-para empresas, contadores y profesionales independientes en República Dominicana que
-quieren detectar errores en sus comprobantes antes de declarar o de enviarlos al contador.
-Llega en buen momento: el plazo para que pequeños y micro contribuyentes emitan
-comprobantes fiscales electrónicos (e-CF) vence el **15 de noviembre de 2026**
-(Aviso 06-26 de la DGII; [resumen](https://siemprealdia.co/republica-dominicana/impuestos/dgii-prorrogo-el-e-cf-para-pequenos-micros-y-no-clasificados/)).
+## ¿Qué es esto?
+
+Le das tus facturas en un archivo de Excel. Te dice cuáles tienen errores y cómo corregirlos.
+Nunca cambia tu archivo: solo lo lee y crea un reporte nuevo aparte.
+
+## ¿Para quién es?
+
+Para dueños de negocios, contadores y profesionales independientes en República Dominicana
+que quieren encontrar errores en sus facturas antes de declarar o de enviárselas al contador.
+
+Si eres pequeño o micro contribuyente, tienes hasta el **15 de noviembre de 2026** para empezar
+a emitir facturas electrónicas (e-CF).
 
 > [!IMPORTANT]
-> **Nunca modifica tus archivos de facturas**: solo los lee y genera un reporte nuevo.
-> **No se conecta a la DGII ni envía tus datos a ningún lugar**: todo se procesa en tu computadora.
-> **Sus resultados no son asesoría fiscal**: revísalos con tu contador antes de presentar cualquier declaración.
+> **No cambia tu archivo.** Solo lo lee y crea un reporte nuevo.
+> **Tus datos no salen de tu computadora.** No se conecta a la DGII ni a ningún otro lugar.
+> **No es asesoría fiscal.** Revisa los resultados con tu contador antes de declarar.
 
-## ¿Hasta qué punto está verificado?
+## Cómo usarlo (la forma más fácil)
 
-- **Reglas verificadas contra fuentes de la DGII el 2026-10-07** (campo `last_verified` en
-  [`rules/itbis_rates.yaml`](rules/itbis_rates.yaml) y [`rules/ncf_types.yaml`](rules/ncf_types.yaml)):
-  - [DGII: ITBIS](https://dgii.gov.do/cicloContribuyente/obligacionesTributarias/principalesImpuestos/Paginas/Itbis.aspx)
-  - [DGII: Guía #7 ITBIS (PDF)](https://dgii.gov.do/publicacionesOficiales/bibliotecaVirtual/contribuyentes/itbis/Documents/1-Guia%207%20-%20%28ITBIS%29.pdf)
-  - [DGII: Tipos de comprobantes fiscales](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscales/Paginas/tiposComprobantes.aspx)
-  - [DGII: Guía Informativa sobre Comprobantes Fiscales (PDF)](https://dgii.gov.do/publicacionesOficiales/bibliotecaVirtual/contribuyentes/facturacion/Documents/Comprobantes%20Fiscales/2-Guia-Informativa-NCF.pdf)
-  - [DGII: Guía de Comprobantes Fiscales Especiales (PDF)](https://dgii.gov.do/publicacionesOficiales/bibliotecaVirtual/contribuyentes/facturacion/Documents/Comprobantes%20Fiscales/3-Guia-Comprobantes-Fiscales-Especiales-NG-05-19.pdf)
-  - [DGII: Comprobantes Fiscales Electrónicos (e-CF)](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscales/Paginas/comprobantesFiscalesElectronicos.aspx)
-  - [DGII: Aviso 24-19, estructura del e-NCF (PDF)](https://dgii.gov.do/publicacionesOficiales/avisosInformativos/Documents/2019/24-19.pdf)
-  - Dígitos verificadores: [python-stdnum `stdnum.do.rnc`](https://arthurdejong.org/python-stdnum/doc/2.2/stdnum.do.rnc.html) y [`stdnum.do.cedula`](https://arthurdejong.org/python-stdnum/doc/2.2/stdnum.do.cedula.html)
-- **140 pruebas automáticas**, con casos válidos e inválidos para cada regla.
-- **Probado solo con el archivo de ejemplo** ([`examples/facturas_ejemplo.csv`](examples/facturas_ejemplo.csv)),
-  todavía no con facturas reales de empresas.
-- Las reglas de **saltos de secuencia y líneas repetidas**, y las **tolerancias** de redondeo
-  (RD$0.01 por línea, RD$0.05 por factura), son heurísticas de esta herramienta, no reglas de la DGII.
-- **Ley 30-26:** La Ley 30-26 (junio 2026) agregó nuevas exenciones de ITBIS para bienes seleccionados, con efecto inmediato. Los resúmenes publicados de la reforma no indican cambios en las tasas de 18% / 16%, pero esto no se ha confirmado contra el texto de la ley. Esta herramienta no revisa listas de productos: si un producto podría estar exento ahora, o si tienes dudas sobre una tasa, confírmalo con tu contador.
-  ([Fuente: RSM, Ley 30-26](https://www.rsm.global/dominicanrepublic/en/news/dominican-republic-tax-reform-law-30-26))
+1. **Prepara tus facturas en Excel.**
+   [Descarga la plantilla](https://github.com/alejandrocimentada/dr-facturacion/raw/main/templates/plantilla_facturas.xlsx)
+   y llénala, con una fila por cada producto o servicio de cada factura.
+   También puedes usar tu propio Excel si tiene columnas parecidas (fecha, RNC, NCF, cantidad,
+   precio, ITBIS, total).
 
-## ¿Qué revisa?
+2. **Pídele a tu asistente de IA que lo revise.** Si usas Claude Code u otro agente de IA
+   (un asistente que puede trabajar con archivos en tu computadora), copia y pega este mensaje:
 
-| Revisión | Qué detecta | Severidad |
+   ```text
+   Instala el skill dr-facturacion desde https://github.com/alejandrocimentada/dr-facturacion
+   y luego revisa mi archivo facturas.xlsx
+   ```
+
+   El agente lo instala todo por ti. Cambia `facturas.xlsx` por el nombre de tu archivo.
+
+3. **Abre el reporte y corrige.** El agente crea un archivo nuevo llamado
+   `facturas_reporte.xlsx` junto a tu archivo. Ábrelo y corrige las filas marcadas en
+   rojo (errores). Las filas en naranja son advertencias: revísalas también.
+
+El reporte tiene tres pestañas:
+
+**Resumen**: cuántas facturas se revisaron, cuántos problemas hay y si el ITBIS cuadra.
+
+![Pestaña Resumen](docs/reporte-resumen.png)
+
+**Problemas**: un problema por fila, con qué está mal y qué hacer. Los más graves van primero.
+
+![Pestaña Problemas](docs/reporte-problemas.png)
+
+**Facturas**: tus datos tal como estaban, con cada fila en color según su estado (rojo, naranja o verde).
+
+![Pestaña Facturas](docs/reporte-facturas.png)
+
+## ¿Qué significa cada error?
+
+| Error | Qué significa | Qué hacer |
 |---|---|---|
-| RNC / cédula | RNC (9 dígitos) o cédula (11 dígitos) del emisor o comprador vacío, mal formado o con dígito verificador inválido; cédulas que perdieron los ceros iniciales en Excel | ERROR · INFO |
-| Estructura NCF / e-NCF | NCF que no sigue `B` + tipo + 8 dígitos, e-NCF que no sigue `E` + tipo + 10 dígitos, tipos de comprobante que no existen, formato anterior a 2018 | ERROR |
-| Tipo de NCF vs comprador | crédito fiscal (B01/E31) sin RNC del comprador; consumo (B02/E32) emitido a una empresa con RNC; régimen especial o exportación (B14/E44, B16/E46) con ITBIS; notas de débito/crédito sin NCF modificado | ERROR · ADVERTENCIA |
-| Secuencias | NCF duplicados, líneas repetidas, secuencias vencidas, saltos en la numeración (posibles anulados para el formato 608) | ERROR · ADVERTENCIA · INFO |
-| Cálculo de ITBIS | tasas que no son 18%, 16%, 0% o exento; ITBIS de la línea distinto de cantidad × precio × tasa; montos ilegibles; líneas al 16% para confirmar | ERROR · INFO |
-| Totales | total de la factura distinto de base + ITBIS | ERROR |
-| Fechas | fechas vacías, inexistentes (p. ej. 31/02) o en el futuro | ERROR |
+| El RNC o la cédula del emisor no es válido | Probablemente hay un número mal escrito, o falta. | Copia el RNC exacto desde una factura o documento oficial. |
+| El RNC o la cédula del comprador no es válido | Probablemente hay un número mal escrito. | Pídele el RNC o la cédula correcta al cliente. |
+| Cédula sin ceros al inicio | Excel borró los ceros del principio. La herramienta los completó por ti. | Nada urgente. Para evitarlo, guarda esa columna como texto. |
+| El NCF tiene un formato incorrecto | Al número de comprobante le faltan o le sobran caracteres. | Cópialo de nuevo desde la factura original. |
+| Tipo de comprobante desconocido | Las letras y números del inicio del NCF (como B01) no existen. | Revisa que el NCF esté bien escrito. |
+| Crédito fiscal sin RNC del comprador | Una factura B01/E31 siempre debe llevar el RNC de quien compra. | Agrega el RNC del cliente, o usa una factura de consumo (B02). |
+| Factura de consumo a una empresa | Diste una factura B02/E32 a alguien que tiene RNC. | Confirma con el cliente: tal vez necesitaba crédito fiscal (B01). |
+| ITBIS en una factura que no debería llevarlo | Facturas de régimen especial o exportación casi nunca llevan ITBIS. | Revisa con tu contador si ese ITBIS va o no. |
+| Nota de crédito o débito sin factura original | La nota no dice a qué factura corrige. | Escribe el NCF de la factura original en la columna `ncf_modificado`. |
+| NCF repetido | El mismo número de comprobante aparece en dos facturas distintas. | Revisa cuál es el correcto. Cada factura debe tener su propio NCF. |
+| Línea repetida | La misma línea aparece dos veces en una factura. | Bórrala si se copió por error. |
+| Salto en la numeración | Faltan números entre un NCF y el siguiente. | Puede que sean facturas anuladas. Si es así, deben ir en el reporte de anulados de la DGII (formato 608). |
+| Secuencia vencida | La factura se hizo después de la fecha de vencimiento de esos NCF. | Pide una secuencia nueva a la DGII y habla con tu contador. |
+| Tasa de ITBIS no válida | La tasa no es 18%, 16%, 0% ni "exento". | Corrige la tasa. Lo normal es 18%. |
+| Número vacío o ilegible | Falta un monto o tiene letras donde van números. | Llena la cantidad, el precio, el ITBIS y el total. |
+| El ITBIS no cuadra | El ITBIS no da cantidad × precio × tasa. | Recalcula el ITBIS de esa línea. |
+| El total no cuadra | El total de la factura no da el monto sin ITBIS + el ITBIS. | Recalcula el total. |
+| Línea con tasa del 16% | Solo algunos productos llevan 16%. Es un aviso, no un error. | Confirma que ese producto de verdad lleva 16%. |
+| Fecha vacía o inválida | Falta la fecha, o no existe (por ejemplo, 31 de febrero). | Escribe la fecha correcta (DD/MM/AAAA). |
+| Fecha en el futuro | La fecha es posterior a hoy. | Corrige el año, el mes o el día. |
 
-El detalle de cada una de las 20 reglas está en [`scripts/check_invoices.py`](scripts/check_invoices.py) (diccionario `RULES`).
+## Glosario
 
-## ¿Por qué es confiable?
+- **RNC**: Registro Nacional de Contribuyentes. El número de 9 dígitos con el que la DGII identifica a una empresa.
+- **Cédula**: el número de identidad de 11 dígitos de una persona. Sirve como RNC para personas físicas.
+- **NCF**: Número de Comprobante Fiscal. El número oficial de cada factura en papel, como `B0100000001`.
+- **e-NCF / e-CF**: la versión electrónica. El e-CF es la factura electrónica; el e-NCF es su número, como `E310000000001`.
+- **ITBIS**: el impuesto que se cobra sobre la venta de bienes y servicios. Normalmente es 18%.
+- **Crédito fiscal**: el ITBIS que una empresa pagó al comprar y que puede descontar del que debe pagar.
+- **B01 vs B02**: B01 es factura de crédito fiscal (para empresas, lleva el RNC del comprador). B02 es factura de consumo (para personas, sin RNC).
 
-1. **Nunca toca el archivo de entrada.** Lo lee en memoria y escribe un reporte aparte; las
-   pruebas verifican con un hash que el archivo queda idéntico (CSV y Excel).
-2. **Los dígitos verificadores se validan con [python-stdnum](https://arthurdejong.org/python-stdnum/)**,
-   una biblioteca abierta y mantenida, no con fórmulas propias.
-3. **Las reglas viven en archivos YAML editables** ([`rules/`](rules/)), con su fecha de
-   verificación y sus fuentes. Si las tasas tienen más de 90 días sin verificarse, la herramienta lo avisa.
-4. **Cada problema explica qué está mal y qué hacer**, en español sencillo, con el número de fila y el NCF.
+## Preguntas frecuentes
 
-## Inicio rápido
+**¿Mis datos se envían a algún lugar?**
+No. Todo se revisa en tu computadora. No se conecta a la DGII ni a internet.
 
-### 1. Requisitos
+**¿Reemplaza a mi contador?**
+No. Te ayuda a encontrar errores antes de enviarle las facturas. La decisión final es de tu contador.
 
-Python 3.10 o superior y `pip`.
+**¿Puede leer facturas en PDF?**
+Todavía no. Por ahora solo lee Excel (.xlsx) y CSV (un formato de tabla que Excel puede guardar).
 
-### 2. Instalar como skill
+**¿Revisa si un RNC está activo?**
+No. Solo revisa que el número esté bien formado. Para saber si está activo, búscalo en la página de la DGII.
+
+**¿Necesito saber programar?**
+No, si usas un agente de IA como Claude Code. El agente se encarga de instalarlo y usarlo.
+
+---
+
+## Para usuarios técnicos
+
+**dr-facturacion** es una skill para agentes de IA (Claude Code, Codex y otros agentes
+compatibles con `SKILL.md`) que también funciona como comando independiente. El plazo de
+e-CF del 15 de noviembre de 2026 viene del Aviso 06-26 de la DGII
+([resumen](https://siemprealdia.co/republica-dominicana/impuestos/dgii-prorrogo-el-e-cf-para-pequenos-micros-y-no-clasificados/)).
+
+### Instalación manual
+
+Requisitos: Python 3.10 o superior y `pip`.
 
 **Claude Code (macOS / Linux)**
 
@@ -96,7 +150,14 @@ cp -R dr-facturacion/. ~/.codex/skills/dr-facturacion/
 pip install -r ~/.codex/skills/dr-facturacion/requirements.txt
 ```
 
-**Como comando independiente (sin agente)**
+Una vez instalada, pídeselo al agente en una conversación:
+
+> Usa dr-facturacion para revisar mis facturas de septiembre: facturas_septiembre.xlsx
+
+El agente ejecuta la revisión, te explica los problemas principales agrupados por severidad
+con los números de fila, y te indica dónde está el reporte.
+
+### Uso como comando (sin agente)
 
 ```bash
 git clone https://github.com/alejandrocimentada/dr-facturacion.git
@@ -109,18 +170,12 @@ El reporte se guarda junto al archivo como `facturas_reporte.xlsx`. Otras opcion
 `--sheet "Septiembre"` (hoja de Excel), `--output revision.xlsx` (ruta del reporte) y
 `--map ncf="No. Comprobante"` (asignar una columna que no se reconoce).
 
-### 3. Úsalo en una conversación
-
-> Usa dr-facturacion para revisar mis facturas de septiembre: facturas_septiembre.xlsx
-
-El agente ejecuta la revisión, te explica los problemas principales agrupados por severidad
-con los números de fila, y te indica dónde está el reporte.
-
-### 4. Plantilla
+### Columnas y mapeo (`--map`)
 
 Usa [`templates/plantilla_facturas.xlsx`](templates/plantilla_facturas.xlsx): una fila por
 cada línea de factura. Los encabezados pueden estar en español o inglés (se ignoran
-mayúsculas, acentos y signos), y CSV o Excel funcionan igual.
+mayúsculas, acentos y signos), y CSV o Excel funcionan igual. Si una columna tiene otro
+nombre, asígnala con `--map campo="Nombre de tu columna"`.
 
 | Columna | Obligatoria | Descripción |
 |---|---|---|
@@ -137,32 +192,54 @@ mayúsculas, acentos y signos), y CSV o Excel funcionan igual.
 | `vencimiento_secuencia` | no | vencimiento de la secuencia de NCF |
 | `ncf_modificado` | no | NCF original, en notas de débito/crédito |
 
-## Cómo se ve el reporte
+Las capturas del reporte de arriba se generaron a partir de
+[`examples/facturas_ejemplo.csv`](examples/facturas_ejemplo.csv).
 
-Reporte generado a partir de [`examples/facturas_ejemplo.csv`](examples/facturas_ejemplo.csv):
+### ¿Qué revisa?
 
-**Resumen**: totales, cantidad por severidad, ITBIS cobrado vs recalculado
+| Revisión | Qué detecta | Severidad |
+|---|---|---|
+| RNC / cédula | RNC (9 dígitos) o cédula (11 dígitos) del emisor o comprador vacío, mal formado o con dígito verificador inválido; cédulas que perdieron los ceros iniciales en Excel | ERROR · INFO |
+| Estructura NCF / e-NCF | NCF que no sigue `B` + tipo + 8 dígitos, e-NCF que no sigue `E` + tipo + 10 dígitos, tipos de comprobante que no existen, formato anterior a 2018 | ERROR |
+| Tipo de NCF vs comprador | crédito fiscal (B01/E31) sin RNC del comprador; consumo (B02/E32) emitido a una empresa con RNC; régimen especial o exportación (B14/E44, B16/E46) con ITBIS; notas de débito/crédito sin NCF modificado | ERROR · ADVERTENCIA |
+| Secuencias | NCF duplicados, líneas repetidas, secuencias vencidas, saltos en la numeración (posibles anulados para el formato 608) | ERROR · ADVERTENCIA · INFO |
+| Cálculo de ITBIS | tasas que no son 18%, 16%, 0% o exento; ITBIS de la línea distinto de cantidad × precio × tasa; montos ilegibles; líneas al 16% para confirmar | ERROR · INFO |
+| Totales | total de la factura distinto de base + ITBIS | ERROR |
+| Fechas | fechas vacías, inexistentes (p. ej. 31/02) o en el futuro | ERROR |
 
-![Hoja Resumen](docs/reporte-resumen.png)
+El detalle de cada una de las 20 reglas está en [`scripts/check_invoices.py`](scripts/check_invoices.py) (diccionario `RULES`).
 
-**Problemas**: una fila por problema, ordenadas por severidad
+### ¿Hasta qué punto está verificado?
 
-![Hoja Problemas](docs/reporte-problemas.png)
+- **Reglas verificadas contra fuentes de la DGII el 2026-10-07** (campo `last_verified` en
+  [`rules/itbis_rates.yaml`](rules/itbis_rates.yaml) y [`rules/ncf_types.yaml`](rules/ncf_types.yaml)):
+  - [DGII: ITBIS](https://dgii.gov.do/cicloContribuyente/obligacionesTributarias/principalesImpuestos/Paginas/Itbis.aspx)
+  - [DGII: Guía #7 ITBIS (PDF)](https://dgii.gov.do/publicacionesOficiales/bibliotecaVirtual/contribuyentes/itbis/Documents/1-Guia%207%20-%20%28ITBIS%29.pdf)
+  - [DGII: Tipos de comprobantes fiscales](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscales/Paginas/tiposComprobantes.aspx)
+  - [DGII: Guía Informativa sobre Comprobantes Fiscales (PDF)](https://dgii.gov.do/publicacionesOficiales/bibliotecaVirtual/contribuyentes/facturacion/Documents/Comprobantes%20Fiscales/2-Guia-Informativa-NCF.pdf)
+  - [DGII: Guía de Comprobantes Fiscales Especiales (PDF)](https://dgii.gov.do/publicacionesOficiales/bibliotecaVirtual/contribuyentes/facturacion/Documents/Comprobantes%20Fiscales/3-Guia-Comprobantes-Fiscales-Especiales-NG-05-19.pdf)
+  - [DGII: Comprobantes Fiscales Electrónicos (e-CF)](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscales/Paginas/comprobantesFiscalesElectronicos.aspx)
+  - [DGII: Aviso 24-19, estructura del e-NCF (PDF)](https://dgii.gov.do/publicacionesOficiales/avisosInformativos/Documents/2019/24-19.pdf)
+  - Dígitos verificadores: [python-stdnum `stdnum.do.rnc`](https://arthurdejong.org/python-stdnum/doc/2.2/stdnum.do.rnc.html) y [`stdnum.do.cedula`](https://arthurdejong.org/python-stdnum/doc/2.2/stdnum.do.cedula.html)
+- **140 pruebas automáticas**, con casos válidos e inválidos para cada regla.
+- **Probado solo con el archivo de ejemplo** ([`examples/facturas_ejemplo.csv`](examples/facturas_ejemplo.csv)),
+  todavía no con facturas reales de empresas.
+- Las reglas de **saltos de secuencia y líneas repetidas**, y las **tolerancias** de redondeo
+  (RD$0.01 por línea, RD$0.05 por factura), son heurísticas de esta herramienta, no reglas de la DGII.
+- **Ley 30-26:** La Ley 30-26 (junio 2026) agregó nuevas exenciones de ITBIS para bienes seleccionados, con efecto inmediato. Los resúmenes publicados de la reforma no indican cambios en las tasas de 18% / 16%, pero esto no se ha confirmado contra el texto de la ley. Esta herramienta no revisa listas de productos: si un producto podría estar exento ahora, o si tienes dudas sobre una tasa, confírmalo con tu contador.
+  ([Fuente: RSM, Ley 30-26](https://www.rsm.global/dominicanrepublic/en/news/dominican-republic-tax-reform-law-30-26))
 
-**Facturas**: datos originales con la columna `estado` en colores
+### ¿Por qué es confiable?
 
-![Hoja Facturas](docs/reporte-facturas.png)
+1. **Nunca toca el archivo de entrada.** Lo lee en memoria y escribe un reporte aparte; las
+   pruebas verifican con un hash que el archivo queda idéntico (CSV y Excel).
+2. **Los dígitos verificadores se validan con [python-stdnum](https://arthurdejong.org/python-stdnum/)**,
+   una biblioteca abierta y mantenida, no con fórmulas propias.
+3. **Las reglas viven en archivos YAML editables** ([`rules/`](rules/)), con su fecha de
+   verificación y sus fuentes. Si las tasas tienen más de 90 días sin verificarse, la herramienta lo avisa.
+4. **Cada problema explica qué está mal y qué hacer**, en español sencillo, con el número de fila y el NCF.
 
-## Límites conocidos
-
-- **No consulta a la DGII en línea**: no puede confirmar que un RNC esté activo ni que un NCF
-  haya sido autorizado, solo que estén bien formados.
-- **No revisa listas de productos**: no sabe qué productos tienen tasa de 16% o están exentos.
-- **Todavía no lee PDF**: solo CSV y Excel (.xlsx).
-- **No cubre retenciones** de ITBIS ni de ISR (ni ISC o propina legal).
-- **Las reglas pueden cambiar**: revisa la fecha `last_verified` en [`rules/`](rules/) antes de confiar en los resultados.
-
-## Personalizar las reglas
+### Personalizar las reglas
 
 Las reglas están en dos archivos YAML que puedes editar sin tocar el código:
 
@@ -174,7 +251,7 @@ Las reglas están en dos archivos YAML que puedes editar sin tocar el código:
 Cuando cambies algo, **actualiza `last_verified`** con la fecha de hoy y **agrega la fuente**
 en `sources`, para que quien use la herramienta sepa de dónde sale cada regla.
 
-## Desarrollo y validación
+### Desarrollo y validación
 
 ```bash
 pip install -r requirements.txt pytest
@@ -185,6 +262,15 @@ python scripts/make_template.py                           # regenera la plantill
 
 El archivo de ejemplo activa las 20 reglas al menos una vez. El banner se genera desde
 [`docs/banner.html`](docs/banner.html).
+
+### Límites conocidos
+
+- **No consulta a la DGII en línea**: no puede confirmar que un RNC esté activo ni que un NCF
+  haya sido autorizado, solo que estén bien formados.
+- **No revisa listas de productos**: no sabe qué productos tienen tasa de 16% o están exentos.
+- **Todavía no lee PDF**: solo CSV y Excel (.xlsx).
+- **No cubre retenciones** de ITBIS ni de ISR (ni ISC o propina legal).
+- **Las reglas pueden cambiar**: revisa la fecha `last_verified` en [`rules/`](rules/) antes de confiar en los resultados.
 
 ## Licencia
 
