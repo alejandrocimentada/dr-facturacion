@@ -1,110 +1,69 @@
 <!doctype html>
 <!-- Source for docs/banner.png (Spanish) and docs/banner.en.png (open with #en).
-     Render at 1600x640, e.g. with headless Edge/Chrome:
-     msedge --headless --window-size=1600,640 --screenshot=banner.png docs/banner.html -->
+     Render at 1600x800 with any headless Chromium, e.g.:
+     msedge --headless --window-size=1600,800 --screenshot=banner.png docs/banner.html -->
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <title>DR Facturación banner</title>
 <style>
   :root {
-    --ink: #1b1f23; --muted: #5b6570; --line: #e3e7ea; --card: #ffffff; --bg: #f6f8f7;
-    --accent: #9BE28F; --accent-ink: #2f6b27; --ok: #2e7d32; --err: #c62828; --warn: #ef6c00; --info: #1565c0;
+    --paper: #FAFBF8; --grid: rgba(27, 31, 35, 0.05); --ink: #1B1F23; --muted: #5B6570;
+    --line: #D9DED9; --accent: #9BE28F; --accent-soft: #EEF8EC; --accent-ink: #2F6B27;
     --mono: "Cascadia Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
-    --sans: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+    --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 1600px; height: 640px; overflow: hidden; background: var(--bg); }
-  body { font-family: var(--sans); color: var(--ink); padding: 28px; }
-  .card {
-    position: relative; width: 100%; height: 100%; background: var(--card);
-    border: 1.5px solid var(--line); border-radius: 28px; overflow: hidden;
-    display: grid; grid-template-columns: 790px 1fr; grid-template-rows: 1fr 64px;
+  html, body { width: 1600px; height: 800px; overflow: hidden; }
+  body {
+    font-family: var(--sans); color: var(--ink); background-color: var(--paper);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px; background-position: -1px -1px;
+    padding: 64px 80px 56px; display: grid; grid-template-rows: 1fr auto; gap: 40px;
   }
-  .left { padding: 0 0 8px 72px; display: flex; flex-direction: column; justify-content: center; }
-  .label { align-self: flex-start; font-family: var(--mono); font-size: 18px; letter-spacing: .18em; color: var(--accent-ink); display: flex; align-items: center; gap: 12px; }
-  .label::before { content: ""; width: 12px; height: 12px; border-radius: 3px; background: var(--accent); }
-  h1 { font-size: 84px; font-weight: 750; letter-spacing: -.02em; margin-top: 22px; line-height: 1; }
-  .subtitle { font-size: 30px; color: var(--muted); margin-top: 20px; }
-  .pills { display: flex; align-self: flex-start; gap: 12px; margin-top: 40px; }
-  .pill { font-family: var(--mono); font-size: 19px; padding: 9px 18px; border-radius: 999px; border: 1.5px solid var(--line); background: #f3fbf1; }
-  .pill b { color: var(--accent-ink); font-weight: 600; }
-  .illustration { position: absolute; right: 40px; bottom: 72px; width: 150px; mix-blend-mode: multiply; }
-
-  .right { display: flex; align-items: center; justify-content: center; gap: 18px; padding: 0 40px 40px 0; }
-  .doc {
-    width: 190px; border: 1.5px solid var(--line); border-radius: 18px; padding: 20px; background: #fff;
-    box-shadow: 0 6px 24px rgba(20, 40, 30, .06);
-  }
-  .doc .icon { width: 46px; height: 56px; border-radius: 8px; position: relative; background: #eef2f0; border: 1.5px solid #d6dcd8; }
-  .doc .icon::after { content: "XLSX"; position: absolute; left: -8px; bottom: 8px; font: 700 11px var(--mono); color: #fff; background: #217346; padding: 2px 5px; border-radius: 4px; }
-  .doc .name { font-family: var(--mono); font-size: 19px; margin-top: 16px; }
-  .doc .rows { margin-top: 14px; display: grid; gap: 8px; }
-  .doc .rows i { display: block; height: 7px; border-radius: 4px; background: #edf0ee; }
-  .doc .rows i:nth-child(2) { width: 80%; } .doc .rows i:nth-child(3) { width: 60%; }
-  .arrow { font-family: var(--mono); font-size: 30px; color: #b7c0bb; }
-  .checks { display: grid; gap: 14px; }
-  .check {
-    width: 180px; display: flex; align-items: center; justify-content: space-between;
-    border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 18px; font-family: var(--mono); font-size: 20px; background: #fff;
-  }
-  .mark { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 18px; font-family: var(--sans); }
-  .ok .mark { background: #e3f6df; color: var(--ok); }
-  .bad { border-color: #f3c7c7; background: #fff8f8; }
-  .bad .mark { background: #fde3e3; color: var(--err); }
-  .report .icon { background: #f3fbf1; border-color: var(--accent); }
-  .legend { margin-top: 14px; display: grid; gap: 7px; font-family: var(--mono); font-size: 14px; color: var(--muted); }
-  .legend span { display: flex; align-items: center; gap: 8px; }
-  .legend span::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
-
-  .strip {
-    grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding-left: 72px;
-    background: var(--accent); font-family: var(--mono); font-size: 19px; letter-spacing: .12em; color: #17361a; font-weight: 600;
-  }
+  .top { display: grid; grid-template-columns: 1fr 660px; align-items: center; gap: 40px; }
+  .label { font: 600 20px var(--mono); letter-spacing: .18em; color: var(--accent-ink); display: flex; align-items: center; gap: 14px; }
+  .label::before { content: ""; width: 14px; height: 14px; border-radius: 3px; background: var(--accent); box-shadow: inset 0 0 0 1.5px rgba(27, 31, 35, .2); }
+  h1 { font-size: 92px; line-height: .98; letter-spacing: -.03em; font-weight: 760; margin-top: 26px; max-width: 12ch; }
+  .sub { margin-top: 26px; font: 500 24px var(--mono); color: var(--muted); letter-spacing: .02em; }
+  .sub b { color: var(--ink); font-weight: 600; }
+  .art { width: 660px; height: auto; margin: -40px -20px 0 0; }
+  .ways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .way { background: #fff; border: 1.5px solid var(--line); border-radius: 16px; padding: 22px 26px 24px; }
+  .way.first { border-color: var(--ink); box-shadow: 0 2px 0 var(--ink); background: var(--accent-soft); }
+  .n { font: 600 16px var(--mono); letter-spacing: .14em; color: var(--accent-ink); }
+  .way h2 { font-size: 30px; letter-spacing: -.015em; margin-top: 8px; font-weight: 700; }
+  .way p { margin-top: 8px; font-size: 19px; color: var(--muted); line-height: 1.35; }
+  .way code { white-space: nowrap; font: 500 15.5px var(--mono); color: var(--ink); background: #F1F3F2; border-radius: 6px; padding: 2px 8px; }
+  .first .tag { display: inline-block; margin-left: 10px; font: 600 13px var(--mono); letter-spacing: .12em; background: var(--accent); color: #12300F; padding: 3px 8px; border-radius: 6px; vertical-align: 1px; line-height: 1; }
 </style>
 </head>
 <body>
-<div class="card">
-  <section class="left">
-    <div class="label">AGENT SKILL · DGII</div>
-    <h1>DR Facturación</h1>
-    <p class="subtitle" data-es="Revisa tus facturas antes de declarar" data-en="Check your invoices before you file"></p>
-    <div class="pills">
-      <span class="pill"><b>RNC</b> / cédula</span>
-      <span class="pill"><b>NCF</b> / e-NCF</span>
-      <span class="pill"><b>ITBIS</b></span>
+  <div class="top">
+    <div>
+      <div class="label">DR FACTURACIÓN</div>
+      <h1 data-es="Revisa tus facturas antes de declarar" data-en="Check your invoices before you file"></h1>
+      <p class="sub"><b>RNC</b> · <b>NCF / e-NCF</b> · <b>ITBIS</b> <span data-es="→ reporte en Excel" data-en="→ Excel report"></span></p>
     </div>
-  </section>
-
-  <section class="right">
-    <div class="doc">
-      <div class="icon"></div>
-      <div class="name">facturas.xlsx</div>
-      <div class="rows"><i></i><i></i><i></i></div>
+    <img class="art" src="app/ilustracion.webp" alt="">
+  </div>
+  <div class="ways">
+    <div class="way first">
+      <div class="n">01<span class="tag" data-es="LA MÁS FÁCIL" data-en="EASIEST"></span></div>
+      <h2 data-es="En el navegador" data-en="In your browser"></h2>
+      <p data-es="Suelta tu Excel y listo. Tu archivo nunca sale de tu navegador." data-en="Drop your Excel file. It never leaves your browser."></p>
     </div>
-    <div class="arrow">→</div>
-    <div class="checks">
-      <div class="check ok">RNC <span class="mark">✓</span></div>
-      <div class="check ok">NCF <span class="mark">✓</span></div>
-      <div class="check bad">ITBIS <span class="mark">✗</span></div>
+    <div class="way">
+      <div class="n">02</div>
+      <h2 data-es="Con tu agente de IA" data-en="With your AI agent"></h2>
+      <p data-es="Claude Code, Codex y otros: instala el skill y pídele que revise tu archivo." data-en="Claude Code, Codex and others: install the skill and ask it to check your file."></p>
     </div>
-    <div class="arrow">→</div>
-    <div class="doc report">
-      <div class="icon"></div>
-      <div class="name">reporte.xlsx</div>
-      <div class="legend">
-        <span style="--c: var(--err)">ERROR</span>
-        <span style="--c: var(--warn)">ADVERTENCIA</span>
-        <span style="--c: var(--info)">INFO</span>
-      </div>
+    <div class="way">
+      <div class="n">03</div>
+      <h2 data-es="En la terminal" data-en="In the terminal"></h2>
+      <p><code>python scripts/check_invoices.py facturas.xlsx</code></p>
     </div>
-  </section>
-
-  <img class="illustration" src="ilustracion.png" alt="">
-
-  <div class="strip" data-es="🛡 NUNCA MODIFICA TUS FACTURAS: SOLO GENERA UN REPORTE"
-       data-en="🛡 NEVER MODIFIES YOUR INVOICES: IT ONLY CREATES A REPORT"></div>
-</div>
+  </div>
 <script>
   const lang = location.hash === "#en" ? "en" : "es";
   document.documentElement.lang = lang;

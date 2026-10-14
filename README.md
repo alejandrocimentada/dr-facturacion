@@ -4,6 +4,8 @@
 
 <p align="center"><strong>Revisa RNC, NCF/e-NCF e ITBIS de tus facturas en segundos, y recibe un reporte en Excel con cada problema explicado en español.</strong></p>
 
+<p align="center"><a href="https://alejandrocimentada.github.io/dr-facturacion/app/"><strong>Úsalo en tu navegador →</strong></a><br><sub>Sin instalar nada. Tu archivo nunca sale de tu navegador.</sub></p>
+
 ## ¿Qué es esto?
 
 Le das tus facturas en un archivo de Excel. Te dice cuáles tienen errores y cómo corregirlos.
@@ -19,53 +21,82 @@ a emitir facturas electrónicas (e-CF).
 
 > [!IMPORTANT]
 > **No cambia tu archivo.** Solo lo lee y crea un reporte nuevo.
-> **Tus datos no salen de tu computadora.** No se conecta a la DGII ni a ningún otro lugar.
+> **Tu archivo no sale de tu computadora.** En el navegador se revisa dentro de la página, sin subirlo a ningún servidor. Nunca se conecta a la DGII.
 > **No es asesoría fiscal.** Revisa los resultados con tu contador antes de declarar.
 
-## Cómo usarlo (la forma más fácil)
+## Cómo usarlo
+
+Hay tres formas. Las tres usan las mismas reglas y crean el mismo reporte de Excel.
+
+### 1. En tu navegador (la más fácil)
+
+**[Úsalo en tu navegador →](https://alejandrocimentada.github.io/dr-facturacion/app/)**
 
 1. **Prepara tus facturas en Excel.**
    [Descarga la plantilla](https://github.com/alejandrocimentada/dr-facturacion/raw/main/templates/plantilla_facturas.xlsx)
    y llénala, con una fila por cada producto o servicio de cada factura.
    También puedes usar tu propio Excel si tiene columnas parecidas (fecha, RNC, NCF, cantidad,
    precio, ITBIS, total).
+2. **Arrastra el archivo a la página** (en el teléfono, tócala para elegirlo). En segundos verás
+   cuántas facturas tienen errores, qué corregir primero y cada problema con su fila.
+3. **Descarga el reporte de Excel** con el botón «Descargar reporte Excel» y corrige las filas marcadas.
 
-2. **Pídele a tu asistente de IA que lo revise.** Si usas Claude Code u otro agente de IA
-   (un asistente que puede trabajar con archivos en tu computadora), copia y pega este mensaje:
+**Tu archivo nunca sale de tu navegador.** La revisión corre dentro de la página con Python
+([Pyodide](https://pyodide.org)); el archivo no se sube a ningún servidor. La primera vez la
+página descarga unos 16 MB (Python y pandas) y después quedan guardados. Funciona en
+computadora y en teléfono, en español o en inglés.
 
-   ```text
-   Instala el skill dr-facturacion desde https://github.com/alejandrocimentada/dr-facturacion
-   y luego revisa mi archivo facturas.xlsx
-   ```
+![La versión web: arrastra tu archivo](docs/web-bienvenida.png)
 
-   El agente lo instala todo por ti. Cambia `facturas.xlsx` por el nombre de tu archivo.
+![Resultados en el navegador](docs/web-resultados.png)
 
-   <details>
-   <summary><b>¿No tienes un agente de IA? Así empiezas (5 minutos)</b></summary>
+<p align="center"><img src="docs/web-telefono.png" alt="La versión web en un teléfono" width="560"></p>
 
-   1. **Qué es un agente de IA:** un asistente, como Claude Code, que puede trabajar con archivos
-      en tu computadora: leerlos, ejecutar programas y explicarte los resultados.
-   2. **Abre la terminal** (la ventana donde se escriben comandos):
-      - Windows: presiona la tecla Windows, escribe "PowerShell" y ábrelo.
-      - Mac: presiona Cmd + Espacio, escribe "Terminal" y ábrela.
-   3. **Instala Claude Code** siguiendo la
-      [guía oficial de inicio rápido](https://code.claude.com/docs/es/quickstart) (pasos 1 y 2).
-      Necesitarás una cuenta de Claude; la guía explica qué planes incluyen Claude Code.
-   4. **Ve a la carpeta de tus facturas** en la terminal. Ejemplo:
-      - Windows: `cd "$HOME\Documents\Facturas"`
-      - Mac: `cd ~/Documents/Facturas`
-   5. **Escribe `claude`** y presiona Enter para abrir el agente. La primera vez te pedirá
-      iniciar sesión con tu cuenta de Claude. Luego pega el mensaje del paso 2.
+### 2. Con tu agente de IA
 
-   </details>
+Si usas Claude Code u otro agente de IA (un asistente que puede trabajar con archivos en tu
+computadora), copia y pega este mensaje:
 
-3. **Abre el reporte y corrige.** El agente crea un archivo nuevo llamado
-   `facturas_reporte.xlsx` junto a tu archivo. Ábrelo y corrige las filas marcadas en
-   rojo (errores). Las filas en naranja son advertencias: revísalas también.
+```text
+Instala el skill dr-facturacion desde https://github.com/alejandrocimentada/dr-facturacion
+y luego revisa mi archivo facturas.xlsx
+```
 
-El reporte tiene tres pestañas:
+El agente lo instala todo por ti. Cambia `facturas.xlsx` por el nombre de tu archivo. Crea un
+archivo nuevo llamado `facturas_reporte.xlsx` junto al tuyo y te explica los problemas principales.
 
-**Resumen**: cuántas facturas se revisaron, cuántos problemas hay y si el ITBIS cuadra.
+<details>
+<summary><b>¿No tienes un agente de IA? Así empiezas (5 minutos)</b></summary>
+
+1. **Qué es un agente de IA:** un asistente, como Claude Code, que puede trabajar con archivos
+   en tu computadora: leerlos, ejecutar programas y explicarte los resultados.
+2. **Abre la terminal** (la ventana donde se escriben comandos):
+   - Windows: presiona la tecla Windows, escribe "PowerShell" y ábrelo.
+   - Mac: presiona Cmd + Espacio, escribe "Terminal" y ábrela.
+3. **Instala Claude Code** siguiendo la
+   [guía oficial de inicio rápido](https://code.claude.com/docs/es/quickstart) (pasos 1 y 2).
+   Necesitarás una cuenta de Claude; la guía explica qué planes incluyen Claude Code.
+4. **Ve a la carpeta de tus facturas** en la terminal. Ejemplo:
+   - Windows: `cd "$HOME\Documents\Facturas"`
+   - Mac: `cd ~/Documents/Facturas`
+5. **Escribe `claude`** y presiona Enter para abrir el agente. La primera vez te pedirá
+   iniciar sesión con tu cuenta de Claude. Luego pega el mensaje de arriba.
+
+</details>
+
+### 3. En la terminal
+
+Si tienes Python, revisa tu archivo con un comando. Los pasos están en
+[Uso como comando (sin agente)](#uso-como-comando-sin-agente).
+
+## El reporte de Excel
+
+Ábrelo y corrige las filas marcadas en rojo (errores). Las filas en ámbar son advertencias:
+revísalas también.
+
+Tiene tres pestañas:
+
+**Resumen**: cuántas facturas se revisaron, cuántos errores, advertencias e info hay, si el ITBIS cuadra y las tres cosas que debes corregir primero («Qué hacer ahora»).
 
 ![Pestaña Resumen](docs/reporte-resumen.png)
 
@@ -73,7 +104,7 @@ El reporte tiene tres pestañas:
 
 ![Pestaña Problemas](docs/reporte-problemas.png)
 
-**Facturas**: tus datos tal como estaban, con cada fila en color según su estado (rojo, naranja o verde).
+**Facturas**: tus datos tal como estaban; las filas con errores en rojo, las advertencias en ámbar y el estado de cada fila en la última columna.
 
 ![Pestaña Facturas](docs/reporte-facturas.png)
 
@@ -115,7 +146,9 @@ El reporte tiene tres pestañas:
 ## Preguntas frecuentes
 
 **¿Mis datos se envían a algún lugar?**
-No. Todo se revisa en tu computadora. No se conecta a la DGII ni a internet.
+No. En el navegador, tu archivo se revisa dentro de la página y nunca se sube: la página solo
+descarga Python y las reglas. Con un agente o en la terminal, todo se revisa en tu computadora.
+Nunca se conecta a la DGII.
 
 **¿Reemplaza a mi contador?**
 No. Te ayuda a encontrar errores antes de enviarle las facturas. La decisión final es de tu contador.
@@ -127,7 +160,7 @@ Todavía no. Por ahora solo lee Excel (.xlsx) y CSV (un formato de tabla que Exc
 No. Solo revisa que el número esté bien formado. Para saber si está activo, búscalo en la página de la DGII.
 
 **¿Necesito saber programar?**
-No, si usas un agente de IA como Claude Code. El agente se encarga de instalarlo y usarlo.
+No. Usa la versión del navegador, o un agente de IA como Claude Code, que lo instala y lo usa por ti.
 
 ---
 
@@ -240,7 +273,7 @@ El detalle de cada una de las 20 reglas está en [`scripts/check_invoices.py`](s
   - [DGII: Comprobantes Fiscales Electrónicos (e-CF)](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscales/Paginas/comprobantesFiscalesElectronicos.aspx)
   - [DGII: Aviso 24-19, estructura del e-NCF (PDF)](https://dgii.gov.do/publicacionesOficiales/avisosInformativos/Documents/2019/24-19.pdf)
   - Dígitos verificadores: [python-stdnum `stdnum.do.rnc`](https://arthurdejong.org/python-stdnum/doc/2.2/stdnum.do.rnc.html) y [`stdnum.do.cedula`](https://arthurdejong.org/python-stdnum/doc/2.2/stdnum.do.cedula.html)
-- **140 pruebas automáticas**, con casos válidos e inválidos para cada regla.
+- **151 pruebas automáticas**, con casos válidos e inválidos para cada regla.
 - **Probado solo con el archivo de ejemplo** ([`examples/facturas_ejemplo.csv`](examples/facturas_ejemplo.csv)),
   todavía no con facturas reales de empresas.
 - Las reglas de **saltos de secuencia y líneas repetidas**, y las **tolerancias** de redondeo
@@ -274,7 +307,7 @@ en `sources`, para que quien use la herramienta sepa de dónde sale cada regla.
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest                                          # 140 pruebas
+python -m pytest                                          # 151 pruebas
 python scripts/check_invoices.py examples/facturas_ejemplo.csv
 python scripts/make_template.py                           # regenera la plantilla de Excel
 ```
@@ -282,12 +315,31 @@ python scripts/make_template.py                           # regenera la plantill
 El archivo de ejemplo activa las 20 reglas al menos una vez. El banner se genera desde
 [`docs/banner.html`](docs/banner.html).
 
+### Versión web
+
+La versión web ([`docs/app/`](docs/app/)) corre [`scripts/check_invoices.py`](scripts/check_invoices.py)
+y [`rules/`](rules/) sin cambios dentro del navegador, con [Pyodide](https://pyodide.org) en un
+Web Worker. Carga pandas y PyYAML de Pyodide, e instala openpyxl y python-stdnum desde PyPI.
+El punto de entrada es [`scripts/web_app.py`](scripts/web_app.py), y
+[`tests/test_web_app.py`](tests/test_web_app.py) verifica que da exactamente los mismos
+resultados y el mismo reporte que la terminal. Para probarla en tu computadora:
+
+```bash
+python scripts/build_site.py _site
+python -m http.server -d _site 8000   # abre http://localhost:8000/app/
+```
+
+Cada push a `main` la publica en GitHub Pages ([`.github/workflows/pages.yml`](.github/workflows/pages.yml)),
+después de correr las pruebas.
+
 ### Límites conocidos
 
 - **No consulta a la DGII en línea**: no puede confirmar que un RNC esté activo ni que un NCF
   haya sido autorizado, solo que estén bien formados.
 - **No revisa listas de productos**: no sabe qué productos tienen tasa de 16% o están exentos.
 - **Todavía no lee PDF**: solo CSV y Excel (.xlsx).
+- **Archivos grandes en el navegador**: 5.000 líneas tardan unos 30 segundos y la página muestra
+  las primeras 1.000 filas (el reporte de Excel las tiene todas). Para archivos muy grandes, la terminal es más rápida.
 - **No cubre retenciones** de ITBIS ni de ISR (ni ISC o propina legal).
 - **Las reglas pueden cambiar**: revisa la fecha `last_verified` en [`rules/`](rules/) antes de confiar en los resultados.
 

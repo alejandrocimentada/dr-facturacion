@@ -4,6 +4,8 @@
 
 <p align="center"><strong>Check the RNC, NCF/e-NCF and ITBIS on your invoices in seconds, and get an Excel report with every issue explained in plain Spanish.</strong></p>
 
+<p align="center"><a href="https://alejandrocimentada.github.io/dr-facturacion/app/"><strong>Use it in your browser →</strong></a><br><sub>Nothing to install. Your file never leaves your browser.</sub></p>
+
 ## What is this?
 
 You give it your invoices in an Excel file. It tells you which ones have errors and how to fix them.
@@ -19,55 +21,83 @@ electronic invoices (e-CF).
 
 > [!IMPORTANT]
 > **It doesn't change your file.** It only reads it and creates a new report.
-> **Your data never leaves your computer.** It doesn't connect to DGII or anywhere else.
+> **Your file never leaves your computer.** In the browser it's checked inside the page, without uploading it to any server. It never connects to DGII.
 > **It isn't tax advice.** Review the results with your accountant before filing.
 
-## How to use it (the easy way)
+## How to use it
+
+There are three ways. All three use the same rules and create the same Excel report.
+
+### 1. In your browser (the easiest)
+
+**[Use it in your browser →](https://alejandrocimentada.github.io/dr-facturacion/app/)**
 
 1. **Put your invoices in Excel.**
    [Download the template](https://github.com/alejandrocimentada/dr-facturacion/raw/main/templates/plantilla_facturas.xlsx)
    and fill it in, with one row for each product or service on each invoice.
    You can also use your own Excel file if it has similar columns (date, RNC, NCF, quantity,
    price, ITBIS, total).
+2. **Drag the file onto the page** (on a phone, tap to choose it). In seconds you'll see how
+   many invoices have errors, what to fix first, and every issue with its row.
+3. **Download the Excel report** with the "Download Excel report" button and fix the marked rows.
 
-2. **Ask your AI assistant to check it.** If you use Claude Code or another AI agent
-   (an assistant that can work with files on your computer), copy and paste this message:
+**Your file never leaves your browser.** The check runs inside the page with Python
+([Pyodide](https://pyodide.org)); the file isn't uploaded to any server. The first time, the
+page downloads about 16 MB (Python and pandas), which is then cached. It works on computers
+and phones, in Spanish or English (toggle at the top).
 
-   ```text
-   Instala el skill dr-facturacion desde https://github.com/alejandrocimentada/dr-facturacion
-   y luego revisa mi archivo facturas.xlsx
-   ```
+![The web version: drop your file](docs/web-bienvenida.png)
 
-   (In English: "Install the dr-facturacion skill from https://github.com/alejandrocimentada/dr-facturacion
-   and then check my file facturas.xlsx".) The agent does the whole installation for you.
-   Replace `facturas.xlsx` with the name of your file.
+![Results in the browser](docs/web-resultados.png)
 
-   <details>
-   <summary><b>Don't have an AI agent? Start here (5 minutes)</b></summary>
+<p align="center"><img src="docs/web-telefono.png" alt="The web version on a phone" width="560"></p>
 
-   1. **What an AI agent is:** an assistant, like Claude Code, that can work with files
-      on your computer: read them, run programs and explain the results to you.
-   2. **Open the terminal** (the window where you type commands):
-      - Windows: press the Windows key, type "PowerShell" and open it.
-      - Mac: press Cmd + Space, type "Terminal" and open it.
-   3. **Install Claude Code** by following the
-      [official quickstart guide](https://code.claude.com/docs/en/quickstart) (steps 1 and 2).
-      You'll need a Claude account; the guide explains which plans include Claude Code.
-   4. **Go to your invoices folder** in the terminal. For example:
-      - Windows: `cd "$HOME\Documents\Facturas"`
-      - Mac: `cd ~/Documents/Facturas`
-   5. **Type `claude`** and press Enter to open the agent. The first time, it will ask you
-      to sign in with your Claude account. Then paste the message from step 2.
+### 2. With your AI agent
 
-   </details>
+If you use Claude Code or another AI agent (an assistant that can work with files on your
+computer), copy and paste this message:
 
-3. **Open the report and fix.** The agent creates a new file called `facturas_reporte.xlsx`
-   next to your file. Open it and fix the rows marked in red (errors). Rows in orange are
-   warnings: check those too.
+```text
+Instala el skill dr-facturacion desde https://github.com/alejandrocimentada/dr-facturacion
+y luego revisa mi archivo facturas.xlsx
+```
 
-The report has three tabs:
+(In English: "Install the dr-facturacion skill from https://github.com/alejandrocimentada/dr-facturacion
+and then check my file facturas.xlsx".) The agent does the whole installation for you.
+Replace `facturas.xlsx` with the name of your file. It creates a new file called
+`facturas_reporte.xlsx` next to yours and explains the main issues.
 
-**Resumen** (Summary): how many invoices were checked, how many issues there are, and whether the ITBIS adds up.
+<details>
+<summary><b>Don't have an AI agent? Start here (5 minutes)</b></summary>
+
+1. **What an AI agent is:** an assistant, like Claude Code, that can work with files
+   on your computer: read them, run programs and explain the results to you.
+2. **Open the terminal** (the window where you type commands):
+   - Windows: press the Windows key, type "PowerShell" and open it.
+   - Mac: press Cmd + Space, type "Terminal" and open it.
+3. **Install Claude Code** by following the
+   [official quickstart guide](https://code.claude.com/docs/en/quickstart) (steps 1 and 2).
+   You'll need a Claude account; the guide explains which plans include Claude Code.
+4. **Go to your invoices folder** in the terminal. For example:
+   - Windows: `cd "$HOME\Documents\Facturas"`
+   - Mac: `cd ~/Documents/Facturas`
+5. **Type `claude`** and press Enter to open the agent. The first time, it will ask you
+   to sign in with your Claude account. Then paste the message above.
+
+</details>
+
+### 3. In the terminal
+
+If you have Python, check your file with one command. The steps are in
+[Command-line use (no agent)](#command-line-use-no-agent).
+
+## The Excel report
+
+Open it and fix the rows marked in red (errors). Rows in amber are warnings: check those too.
+
+It has three tabs:
+
+**Resumen** (Summary): how many invoices were checked, how many errors, warnings and info notes there are, whether the ITBIS adds up, and the three things to fix first ("Qué hacer ahora").
 
 ![Resumen tab](docs/reporte-resumen.png)
 
@@ -75,7 +105,7 @@ The report has three tabs:
 
 ![Problemas tab](docs/reporte-problemas.png)
 
-**Facturas** (Invoices): your data exactly as it was, with each row colored by status (red, orange or green).
+**Facturas** (Invoices): your data exactly as it was; rows with errors in red, warnings in amber, and each row's status in the last column.
 
 ![Facturas tab](docs/reporte-facturas.png)
 
@@ -117,7 +147,9 @@ The report has three tabs:
 ## FAQ
 
 **Is my data sent anywhere?**
-No. Everything is checked on your computer. It doesn't connect to DGII or the internet.
+No. In the browser, your file is checked inside the page and never uploaded: the page only
+downloads Python and the rules. With an agent or in the terminal, everything is checked on your
+computer. It never connects to DGII.
 
 **Does it replace my accountant?**
 No. It helps you find errors before you send your invoices. Your accountant has the final word.
@@ -129,7 +161,7 @@ Not yet. For now it only reads Excel (.xlsx) and CSV (a table format Excel can s
 No. It only checks that the number is well-formed. To see if it's active, look it up on DGII's website.
 
 **Do I need to know how to code?**
-No, if you use an AI agent like Claude Code. The agent installs and runs it for you.
+No. Use the browser version, or an AI agent like Claude Code, which installs and runs it for you.
 
 ---
 
@@ -242,7 +274,7 @@ Each of the 20 rules is defined in [`scripts/check_invoices.py`](scripts/check_i
   - [DGII: Electronic fiscal receipts (e-CF)](https://dgii.gov.do/cicloContribuyente/facturacion/comprobantesFiscales/Paginas/comprobantesFiscalesElectronicos.aspx)
   - [DGII: Aviso 24-19, e-NCF structure (PDF)](https://dgii.gov.do/publicacionesOficiales/avisosInformativos/Documents/2019/24-19.pdf)
   - Check digits: [python-stdnum `stdnum.do.rnc`](https://arthurdejong.org/python-stdnum/doc/2.2/stdnum.do.rnc.html) and [`stdnum.do.cedula`](https://arthurdejong.org/python-stdnum/doc/2.2/stdnum.do.cedula.html)
-- **140 automated tests**, with valid and invalid cases for every rule.
+- **151 automated tests**, with valid and invalid cases for every rule.
 - **Tested only with the sample file** ([`examples/facturas_ejemplo.csv`](examples/facturas_ejemplo.csv)),
   not yet with real company invoices.
 - The **sequence-gap and repeated-line** rules and the rounding **tolerances**
@@ -276,7 +308,7 @@ under `sources`, so users know where each rule comes from.
 
 ```bash
 pip install -r requirements.txt pytest
-python -m pytest                                          # 140 tests
+python -m pytest                                          # 151 tests
 python scripts/check_invoices.py examples/facturas_ejemplo.csv
 python scripts/make_template.py                           # rebuild the Excel template
 ```
@@ -284,12 +316,31 @@ python scripts/make_template.py                           # rebuild the Excel te
 The sample file triggers all 20 rules at least once. The banner is generated from
 [`docs/banner.html`](docs/banner.html).
 
+### Web version
+
+The web version ([`docs/app/`](docs/app/)) runs [`scripts/check_invoices.py`](scripts/check_invoices.py)
+and [`rules/`](rules/) unchanged inside the browser, with [Pyodide](https://pyodide.org) in a
+Web Worker. It loads pandas and PyYAML from Pyodide and installs openpyxl and python-stdnum from
+PyPI. The entry point is [`scripts/web_app.py`](scripts/web_app.py), and
+[`tests/test_web_app.py`](tests/test_web_app.py) checks that it gives exactly the same results
+and the same report as the command line. To try it locally:
+
+```bash
+python scripts/build_site.py _site
+python -m http.server -d _site 8000   # open http://localhost:8000/app/
+```
+
+Every push to `main` runs the tests and publishes it to GitHub Pages
+([`.github/workflows/pages.yml`](.github/workflows/pages.yml)).
+
 ### Known limitations
 
 - **No online DGII lookup**: it can't confirm that an RNC is active or that an NCF was
   authorized, only that they are well-formed.
 - **No product lists**: it doesn't know which products qualify for the 16% rate or are exempt.
 - **No PDF support yet**: CSV and Excel (.xlsx) only.
+- **Large files in the browser**: 5,000 lines take about 30 seconds, and the page shows the
+  first 1,000 rows (the Excel report has all of them). For very large files, the command line is faster.
 - **No withholdings**: ITBIS and ISR withholdings are not covered (nor ISC or the legal tip).
 - **Rules can change**: check the `last_verified` date in [`rules/`](rules/) before relying on the results.
 

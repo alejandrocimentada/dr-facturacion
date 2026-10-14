@@ -847,8 +847,8 @@ def write_report(result: Result, df: pd.DataFrame, input_path: Path, output: Pat
         ("ADVERTENCIAS", counts[ADVERTENCIA], palette[ADVERTENCIA][0] if counts[ADVERTENCIA] else ink,
          "revisar con atención", palette[ADVERTENCIA][0]),
         ("INFO", counts[INFO], ink, "solo confirmar", palette[INFO][0]),
-        ("DIFERENCIA ITBIS (RD$)", diff, palette[ERROR][0] if abs(diff) > 0.004 else palette["OK"][0],
-         "cobrado − recalculado", "5DBB4E"),
+        ("DIFERENCIA ITBIS", diff, palette[ERROR][0] if abs(diff) > 0.004 else palette["OK"][0],
+         "RD$ cobrado − recalculado", "5DBB4E"),
     ]
     for index, (title, value, color, note, top) in enumerate(cards):
         a, b = 2 + index * 3, 3 + index * 3
@@ -874,7 +874,7 @@ def write_report(result: Result, df: pd.DataFrame, input_path: Path, output: Pat
     r += 1
     actions = top_actions(result)
     for number, action in enumerate(actions, start=1):
-        put(r, first, number, font(11, palette["OK"][0], True, mono), align="right").number_format = "00"
+        put(r, first, number, font(11, palette["OK"][0], True, mono)).number_format = "00"
         rows_note = f"{rows_text(action['filas'])} · {action['severidad']}"
         rich = CellRichText(
             TextBlock(InlineFont(rFont=sans, sz=11, b=True, color=ink), action["titulo"] + ". "),
