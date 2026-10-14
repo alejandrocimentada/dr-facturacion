@@ -64,6 +64,53 @@ RULES = {
     "R6-FECHA-FUTURA": (ERROR, "Fecha en el futuro"),
 }
 
+# Plain-language title and "what to do" for each rule (Resumen sheet and web app).
+RULE_HELP = {
+    "R1-RNC-EMISOR": ("El RNC o la cédula del emisor no es válido",
+                      "Copia el RNC exacto desde una factura o documento oficial."),
+    "R1-RNC-COMPRADOR": ("El RNC o la cédula del comprador no es válido",
+                         "Pídele el RNC o la cédula correcta al cliente."),
+    "R1-CEDULA-CEROS": ("Cédula sin ceros al inicio",
+                        "Nada urgente. Para evitarlo, guarda esa columna como texto."),
+    "R2-NCF-ESTRUCTURA": ("El NCF tiene un formato incorrecto",
+                          "Copia el NCF de nuevo desde la factura original."),
+    "R2-NCF-TIPO": ("Tipo de comprobante desconocido",
+                    "Revisa que el NCF esté bien escrito."),
+    "R3-CREDITO-SIN-COMPRADOR": ("Crédito fiscal sin RNC del comprador",
+                                 "Agrega el RNC del cliente, o usa una factura de consumo (B02)."),
+    "R3-CONSUMO-CON-RNC": ("Factura de consumo a una empresa",
+                           "Confirma con el cliente: tal vez necesitaba crédito fiscal (B01)."),
+    "R3-EXENTO-CON-ITBIS": ("ITBIS en una factura que no debería llevarlo",
+                            "Revisa con tu contador si ese ITBIS va o no."),
+    "R3-NOTA-SIN-REFERENCIA": ("Nota de crédito o débito sin factura original",
+                               "Escribe el NCF de la factura original en la columna ncf_modificado."),
+    "R4-NCF-DUPLICADO": ("NCF repetido",
+                         "Revisa cuál es el correcto. Cada factura debe tener su propio NCF."),
+    "R4-LINEA-REPETIDA": ("Línea repetida",
+                          "Bórrala si se copió por error."),
+    "R4-SECUENCIA-SALTO": ("Salto en la numeración",
+                           "Si son facturas anuladas, deben ir en el formato 608 de la DGII."),
+    "R4-SECUENCIA-VENCIDA": ("Secuencia vencida",
+                             "Pide una secuencia nueva a la DGII y habla con tu contador."),
+    "R5-TASA-INVALIDA": ("Tasa de ITBIS no válida",
+                         "Corrige la tasa: 18%, 16%, 0% o exento. Lo normal es 18%."),
+    "R5-NUMERO-INVALIDO": ("Número vacío o ilegible",
+                           "Llena la cantidad, el precio, el ITBIS y el total con números."),
+    "R5-ITBIS-LINEA": ("El ITBIS no cuadra",
+                       "Recalcula el ITBIS de la línea: cantidad × precio × tasa."),
+    "R5-TOTAL-FACTURA": ("El total no cuadra",
+                         "Recalcula el total: monto sin ITBIS + ITBIS."),
+    "R5-TASA-REDUCIDA": ("Línea con tasa del 16%",
+                         "Confirma que ese producto de verdad lleva 16%."),
+    "R6-FECHA-INVALIDA": ("Fecha vacía o inválida",
+                          "Escribe la fecha correcta (DD/MM/AAAA)."),
+    "R6-FECHA-FUTURA": ("Fecha en el futuro",
+                        "Corrige el año, el mes o el día."),
+}
+
+DISCLAIMER = ("Esto no es asesoría fiscal. Revisa estos resultados con tu contador antes de "
+              "presentar cualquier declaración.")
+
 # Canonical column -> accepted header names (already normalized: lowercase, no accents,
 # non-alphanumerics -> "_", "%" -> "pct").
 COLUMN_ALIASES = {
@@ -656,6 +703,22 @@ def itbis_totals(result: Result) -> tuple[float, float]:
     return sum(l.itbis for l in comparable), sum(l.itbis_expected for l in comparable)
 
 
+def top_actions(result: Result, n: int = 3) -> list[dict]:
+    """The n most important rules to fix: most severe first, then the most affected rows."""
+    by_rule: dict[str, set[int]] = {}
+    for issue in result.issues:
+        by_rule.setdefault(issue.regla, set()).update(f for f in (issue.filas or [issue.fila]) if f)
+    ranked = sorted(by_rule, key=lambda r: (SEVERITY_ORDER[RULES[r][0]], -len(by_rule[r]), r))
+    return [{"regla": r, "severidad": RULES[r][0], "titulo": RULE_HELP[r][0],
+             "accion": RULE_HELP[r][1], "filas": sorted(by_rule[r])} for r in ranked[:n]]
+
+
+def rows_text(filas: list[int], limit: int = 8) -> str:
+    shown = ", ".join(str(f) for f in filas[:limit])
+    extra = f" y {len(filas) - limit} más" if len(filas) > limit else ""
+    return f"{'Fila' if len(filas) == 1 else 'Filas'} {shown}{extra}"
+
+
 def _cell_value(value, is_amount: bool):
     """Original cell value for the Facturas sheet; plain numeric text in amount columns becomes a number."""
     if is_blank(value):
@@ -670,107 +733,229 @@ def _cell_value(value, is_amount: bool):
 def write_report(result: Result, df: pd.DataFrame, input_path: Path, output: Path,
                  rules: dict, today: dt.date, colmap: dict[str, str] | None = None) -> Path:
     from openpyxl import Workbook
-    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.cell.rich_text import CellRichText, TextBlock
+    from openpyxl.cell.text import InlineFont
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     from openpyxl.utils import get_column_letter
 
-    fills = {
-        ERROR: ("C62828", "FDECEA"), ADVERTENCIA: ("EF6C00", "FFF4E5"),
-        INFO: ("1565C0", "E8F1FB"), "OK": ("2E7D32", "EAF5EA"),
-    }
-    header_fill = PatternFill("solid", fgColor="263238")
-    header_font = Font(bold=True, color="FFFFFF")
+    # status -> (strong, light); same palette on every sheet
+    palette = {"OK": ("2F6B27", "EEF8EC"), ADVERTENCIA: ("9A5B00", "FFF3DC"),
+               ERROR: ("B42318", "FDECEA"), INFO: ("5B6570", "F1F3F2")}
+    ink, muted, rule_color, accent = "1B1F23", "5B6570", "D9DED9", "9BE28F"
+    sans, mono = "Calibri", "Consolas"
+    thin = Side(style="thin", color=rule_color)
 
-    def style_header(ws, ncols):
-        for col in range(1, ncols + 1):
-            cell = ws.cell(row=1, column=col)
-            cell.fill, cell.font = header_fill, header_font
-        ws.freeze_panes = "A2"
+    def font(size=11, color=ink, bold=False, name=sans):
+        return Font(name=name, size=size, color=color, bold=bold)
 
-    def autosize(ws, max_width=80):
-        for col_cells in ws.columns:
-            width = max(len(str(c.value)) if c.value is not None else 0 for c in col_cells)
-            ws.column_dimensions[get_column_letter(col_cells[0].column)].width = min(max(width + 4, 8), max_width)
+    def fill(color):
+        return PatternFill("solid", fgColor=color)
+
+    def chip(cell, estado):
+        strong, light = palette[estado]
+        cell.font = font(10, strong, True)
+        cell.fill = fill(light)
+        cell.alignment = Alignment(horizontal="center", vertical="top")
+
+    def style_table(ws, widths, wrap_cols=(), mono_cols=(), freeze="A2"):
+        ws.sheet_view.showGridLines = False
+        for cell in ws[1]:
+            cell.font = font(10, ink, True, mono)
+            cell.fill = fill("F3F5F4")
+            cell.border = Border(bottom=Side(style="thin", color=ink))
+            cell.alignment = Alignment(vertical="center")
+        ws.row_dimensions[1].height = 22
+        for row in ws.iter_rows(min_row=2):
+            for cell in row:
+                cell.border = Border(bottom=thin)
+                cell.alignment = Alignment(vertical="top", wrap_text=cell.column in wrap_cols)
+                if cell.column in mono_cols:
+                    cell.font = font(10, ink, name=mono)
+        for col, width in enumerate(widths, start=1):
+            ws.column_dimensions[get_column_letter(col)].width = width
+        ws.freeze_panes = freeze
+        ws.auto_filter.ref = ws.dimensions
 
     wb = Workbook()
 
-    # 1. Resumen
+    # 1. Resumen: header, number cards, top actions, details, notes
     ws = wb.active
     ws.title = "Resumen"
+    ws.sheet_view.showGridLines = False
     counts = result.counts()
     charged, expected = itbis_totals(result)
+    diff = round(charged - expected, 2)
     age = rates_age_days(rules, today)
     status = result.row_status()
-    rows = [
-        ("Archivo revisado", input_path.name),
-        ("Fecha de revisión", today.strftime("%d/%m/%Y")),
-        ("Facturas revisadas", result.invoice_count),
-        ("Líneas revisadas", len(result.lines)),
-        ("Líneas OK", sum(1 for l in result.lines if l.fila not in status)),
-        ("ERROR", counts[ERROR]),
-        ("ADVERTENCIA", counts[ADVERTENCIA]),
-        ("INFO", counts[INFO]),
-        ("ITBIS cobrado (RD$)", round(charged, 2)),
-        ("ITBIS recalculado (RD$)", round(expected, 2)),
-        ("Diferencia (RD$)", round(charged - expected, 2)),
-        ("Tasas ITBIS verificadas el", f"{rules['itbis']['last_verified']} (hace {age} días)"),
-        ("Nota sobre tasas", rates_note(rules)),
-        ("Aviso", "Esto no es asesoría fiscal. Revisa estos resultados con tu contador antes de "
-                  "presentar cualquier declaración."),
-    ]
+    lines_ok = sum(1 for l in result.lines if l.fila not in status)
+
+    first, last = 2, 15                       # content spans B:O, cards are 2 columns + a gutter
+    gutters = {1: 3, 4: 2, 7: 2, 10: 2, 13: 2, 16: 3}
+    for col in range(1, 17):
+        ws.column_dimensions[get_column_letter(col)].width = gutters.get(col, 12)
+    chars_per_line = 125
+
+    def text_height(text, size=10.5):
+        lines = sum(max(1, math.ceil(len(part) / chars_per_line)) for part in str(text).split("\n"))
+        return lines * (size * 1.45) + 8
+
+    def put(row, col, value, f, end=None, align="left", valign="top", wrap=False):
+        if end and end > col:
+            ws.merge_cells(start_row=row, start_column=col, end_row=row, end_column=end)
+        cell = ws.cell(row=row, column=col, value=value)
+        cell.font = f
+        cell.alignment = Alignment(horizontal=align, vertical=valign, wrap_text=wrap)
+        return cell
+
+    def label(row, text, col=first, end=last, color=muted):
+        put(row, col, text, font(9, color, True, mono), end, valign="bottom")
+        ws.row_dimensions[row].height = 18
+
+    def spacer(row, height=14):
+        ws.row_dimensions[row].height = height
+        return row + 1
+
+    label(2, "DR FACTURACIÓN  ·  REPORTE DE REVISIÓN", color=palette["OK"][0])
+    put(3, first, "Revisión de facturas", font(24, ink, True), last, valign="center")
+    ws.row_dimensions[3].height = 38
+    for col, end, text, value in ((2, 6, "ARCHIVO REVISADO", input_path.name),
+                                  (8, 9, "FECHA DE REVISIÓN", today.strftime("%d/%m/%Y")),
+                                  (11, 15, "TASAS ITBIS VERIFICADAS EL",
+                                   f"{rules['itbis']['last_verified']} (hace {age} días)")):
+        label(4, text, col, end)
+        put(5, col, value, font(11, ink), end)
+    ws.row_dimensions[5].height = 20
+    for col in range(first, last + 1):
+        ws.cell(row=6, column=col).fill = fill(accent)
+    ws.row_dimensions[6].height = 4
+    r = spacer(7, 18)
+
     if age > STALE_DAYS:
-        rows.insert(12, ("ATENCIÓN", f"Las tasas de ITBIS no se verifican desde hace {age} días; "
-                                     "confírmalas en dgii.gov.do."))
-    ws.append(["Concepto", "Valor"])
-    for r in rows:
-        ws.append(list(r))
-    style_header(ws, 2)
-    for row in ws.iter_rows(min_row=2):
-        row[0].font = Font(bold=True)
-        row[1].alignment = Alignment(wrap_text=True, vertical="top", horizontal="left")
-        label = row[0].value
-        if label in (ERROR, ADVERTENCIA, INFO):
-            row[0].font = Font(bold=True, color=fills[label][0])
-            row[1].fill = PatternFill("solid", fgColor=fills[label][1])
-        if isinstance(row[1].value, float):
-            row[1].number_format = "#,##0.00"
-        if label == "ATENCIÓN":
-            row[0].font = Font(bold=True, color=fills[ERROR][0])
-    ws.column_dimensions["A"].width = 28
-    ws.column_dimensions["B"].width = 90
+        text = (f"ATENCIÓN: las tasas de ITBIS no se verifican desde hace {age} días; "
+                "confírmalas en dgii.gov.do.")
+        cell = put(r, first, text, font(10.5, palette[ERROR][0], True), last, valign="center", wrap=True)
+        for col in range(first, last + 1):
+            ws.cell(row=r, column=col).fill = fill(palette[ERROR][1])
+        ws.row_dimensions[r].height = text_height(text) + 6
+        r = spacer(r + 1)
+
+    cards = [
+        ("FACTURAS REVISADAS", result.invoice_count, ink,
+         f"{len(result.lines)} líneas · {lines_ok} OK", ink),
+        ("ERRORES", counts[ERROR], palette[ERROR][0] if counts[ERROR] else ink,
+         "corregir antes de declarar", palette[ERROR][0]),
+        ("ADVERTENCIAS", counts[ADVERTENCIA], palette[ADVERTENCIA][0] if counts[ADVERTENCIA] else ink,
+         "revisar con atención", palette[ADVERTENCIA][0]),
+        ("INFO", counts[INFO], ink, "solo confirmar", palette[INFO][0]),
+        ("DIFERENCIA ITBIS (RD$)", diff, palette[ERROR][0] if abs(diff) > 0.004 else palette["OK"][0],
+         "cobrado − recalculado", "5DBB4E"),
+    ]
+    for index, (title, value, color, note, top) in enumerate(cards):
+        a, b = 2 + index * 3, 3 + index * 3
+        label(r, title, a, b)
+        number = put(r + 1, a, value, font(26, color, True), b)
+        number.number_format = "#,##0.00" if isinstance(value, float) else "#,##0"
+        put(r + 2, a, note, font(9.5, muted), b)
+        for row in range(r, r + 3):
+            for col in (a, b):
+                cell = ws.cell(row=row, column=col)
+                cell.border = Border(
+                    left=thin if col == a else None, right=thin if col == b else None,
+                    top=Side(style="medium", color=top) if row == r else None,
+                    bottom=thin if row == r + 2 else None)
+                cell.alignment = Alignment(horizontal="left", indent=1,
+                                           vertical=("bottom", "center", "top")[row - r])
+    ws.row_dimensions[r].height = 26
+    ws.row_dimensions[r + 1].height = 40
+    ws.row_dimensions[r + 2].height = 24
+    r = spacer(r + 3, 24)
+
+    label(r, "QUÉ HACER AHORA")
+    r += 1
+    actions = top_actions(result)
+    for number, action in enumerate(actions, start=1):
+        put(r, first, number, font(11, palette["OK"][0], True, mono), align="right").number_format = "00"
+        rows_note = f"{rows_text(action['filas'])} · {action['severidad']}"
+        rich = CellRichText(
+            TextBlock(InlineFont(rFont=sans, sz=11, b=True, color=ink), action["titulo"] + ". "),
+            TextBlock(InlineFont(rFont=sans, sz=11, color=ink), action["accion"] + "  "),
+            TextBlock(InlineFont(rFont=sans, sz=10, color=palette[action["severidad"]][0]), rows_note),
+        )
+        put(r, first + 1, rich, font(11), last, wrap=True)
+        plain = f"{action['titulo']}. {action['accion']}  {rows_note}"
+        ws.row_dimensions[r].height = max(24, text_height(plain, 11))
+        for col in range(first, last + 1):
+            ws.cell(row=r, column=col).border = Border(bottom=thin)
+        r += 1
+    if not actions:
+        put(r, first, "No se encontraron problemas en este archivo.", font(11, palette["OK"][0], True), last)
+        ws.row_dimensions[r].height = 24
+        r += 1
+    r = spacer(r, 24)
+
+    label(r, "DETALLE")
+    r += 1
+    for title, value in (("Líneas revisadas", len(result.lines)), ("Líneas OK", lines_ok),
+                         ("ITBIS cobrado (RD$)", round(charged, 2)),
+                         ("ITBIS recalculado (RD$)", round(expected, 2)), ("Diferencia (RD$)", diff)):
+        put(r, first, title, font(10.5, ink), first + 3, valign="center")
+        cell = put(r, first + 4, value, font(10.5, ink, True), first + 5, align="right", valign="center")
+        cell.number_format = "#,##0.00" if isinstance(value, float) else "#,##0"
+        for col in range(first, first + 6):
+            ws.cell(row=r, column=col).border = Border(bottom=thin)
+        ws.row_dimensions[r].height = 20
+        r += 1
+    r = spacer(r, 24)
+
+    note = rates_note(rules)
+    label(r, "NOTA SOBRE TASAS · LEY 30-26")
+    put(r + 1, first, note, font(10, muted), last, wrap=True)
+    ws.row_dimensions[r + 1].height = text_height(note, 10)
+    r = spacer(r + 2, 10)
+    label(r, "AVISO")
+    put(r + 1, first, DISCLAIMER, font(10.5, ink, True), last, wrap=True)
+    ws.row_dimensions[r + 1].height = text_height(DISCLAIMER)
+    r += 2
+    ws.print_area = f"A1:P{r}"
+    ws.page_setup.orientation = "landscape"
+    ws.page_setup.fitToWidth, ws.page_setup.fitToHeight = 1, 0
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
 
     # 2. Problemas
     ws = wb.create_sheet("Problemas")
     ws.append(["fila", "ncf", "severidad", "regla", "mensaje"])
     for issue in sorted_issues(result.issues):
         ws.append([issue.fila, issue.ncf, issue.severidad, issue.regla, issue.mensaje])
-        cell = ws.cell(row=ws.max_row, column=3)
-        cell.font = Font(bold=True, color=fills[issue.severidad][0])
-        cell.fill = PatternFill("solid", fgColor=fills[issue.severidad][1])
-    style_header(ws, 5)
-    autosize(ws, max_width=110)
-    ws.auto_filter.ref = ws.dimensions
+    style_table(ws, [7, 17, 15, 28, 100], wrap_cols={5}, mono_cols={2, 4})
+    for row in ws.iter_rows(min_row=2):
+        chip(row[2], row[2].value)
 
     # 3. Facturas: original data + estado
     ws = wb.create_sheet("Facturas")
     columns = [str(c) for c in df.columns]
     amount_headers = {(colmap or {}).get(c) for c in ("cantidad", "precio_unitario", "itbis", "total")}
     ws.append(["fila"] + columns + ["estado"])
+    estados = []
     for position, (_, row) in enumerate(df.iterrows()):
         fila = position + 2
-        estado = status.get(fila, "OK")
+        estados.append(status.get(fila, "OK"))
         values = [_cell_value(v, header in amount_headers) for header, v in row.items()]
-        ws.append([fila] + values + [estado])
-        strong, light = fills[estado]
-        for cell in ws[ws.max_row]:
-            cell.fill = PatternFill("solid", fgColor=light)
+        ws.append([fila] + values + [estados[-1]])
+    widths = [7]
+    for col_cells in list(ws.columns)[1:]:
+        longest = max(len(str(c.value)) if c.value is not None else 0 for c in col_cells[1:])
+        widths.append(min(max(longest + 3, len(str(col_cells[0].value)) + 5, 9), 38))
+    style_table(ws, widths, wrap_cols={i for i, w in enumerate(widths, start=1) if w == 38},
+                mono_cols={1}, freeze="B2")
+    for row, estado in zip(ws.iter_rows(min_row=2), estados):
+        for cell in row[:-1]:
+            if estado in (ERROR, ADVERTENCIA):
+                cell.fill = fill(palette[estado][1])
             if isinstance(cell.value, float):
                 cell.number_format = "#,##0.00"
-        last = ws.cell(row=ws.max_row, column=len(columns) + 2)
-        last.font = Font(bold=True, color="FFFFFF")
-        last.fill = PatternFill("solid", fgColor=strong)
-    style_header(ws, len(columns) + 2)
-    autosize(ws, max_width=45)
-    ws.auto_filter.ref = ws.dimensions
+            elif isinstance(cell.value, dt.datetime):
+                cell.number_format = "DD/MM/YYYY"
+        chip(row[-1], estado)
 
     # Never overwrite the input; if the report is open in Excel, pick another name.
     candidates = [output] + [output.with_name(f"{output.stem}_{n}{output.suffix}") for n in range(1, 50)]

@@ -460,3 +460,33 @@ def test_ley_30_26_note_always_shown_in_spanish():
     assert "NOTA: La Ley 30-26 (junio 2026) agregó nuevas exenciones" in summary
     assert "no se ha confirmado contra el texto de la ley" in summary
     assert "confírmalo con tu contador" in summary
+
+
+# ---------------------------------------------------------------- report layout
+
+def test_every_rule_has_plain_language_help():
+    assert set(ci.RULE_HELP) == set(ci.RULES)
+
+
+def test_top_actions_most_severe_first():
+    result = run(line(), line(ncf="B0100000002", rnc_comprador=""),
+                 line(ncf="B0100000003", tasa_itbis="16", itbis="160.00", total="1160.00"))
+    actions = ci.top_actions(result)
+    assert actions[0]["regla"] == "R3-CREDITO-SIN-COMPRADOR" and actions[0]["filas"] == [3]
+    assert actions[-1]["severidad"] == ci.INFO
+    assert ci.rows_text(list(range(2, 13))) == "Filas 2, 3, 4, 5, 6, 7, 8, 9 y 3 más"
+
+
+def test_resumen_sheet_keeps_all_summary_data(tmp_path):
+    from openpyxl import load_workbook
+    src = tmp_path / "facturas_ejemplo.csv"
+    shutil.copy(ROOT / "examples" / "facturas_ejemplo.csv", src)
+    assert ci.main([str(src), "--today", "2027-01-06"]) == 0
+    ws = load_workbook(tmp_path / "facturas_ejemplo_reporte.xlsx")["Resumen"]
+    text = " ".join(str(c.value) for row in ws.iter_rows() for c in row if c.value is not None)
+    for expected in ("facturas_ejemplo.csv", "06/01/2027", "FACTURAS REVISADAS", "ERRORES",
+                     "ADVERTENCIAS", "INFO", "QUÉ HACER AHORA", "Líneas OK", "ITBIS cobrado",
+                     "ITBIS recalculado", "Diferencia", "ATENCIÓN", "La Ley 30-26", ci.DISCLAIMER):
+        assert expected in text
+    values = [c.value for row in ws.iter_rows() for c in row]
+    assert 26 in values and 15 in values and -160.0 in values
