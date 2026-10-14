@@ -6,3 +6,4 @@ __pycache__/
 *_reporte.xlsx
 *_reporte_*.xlsx
 ~$*.xlsx
+_site/

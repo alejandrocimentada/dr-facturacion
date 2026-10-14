@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FAFBF8">
+<title>DR Facturación · Revisa tus facturas</title>
+<meta name="description" content="Revisa RNC, NCF/e-NCF e ITBIS de tus facturas dominicanas en el navegador. Tu archivo nunca sale de tu navegador.">
+<link rel="icon" href="favicon.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="skip">Saltar al contenido</a>
+
+<header class="topbar">
+  <a class="brand" href="./" aria-label="DR Facturación">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="mono">DR FACTURACIÓN</span>
+  </a>
+  <div class="topbar-right">
+    <div class="lang" role="group" aria-label="Idioma / Language" data-i18n-aria="lang">
+      <button type="button" class="lang-btn mono" data-lang="es" aria-pressed="true">ES</button>
+      <button type="button" class="lang-btn mono" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <a class="gh mono" href="https://github.com/alejandrocimentada/dr-facturacion" data-i18n="github">GitHub</a>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <!-- 1. Welcome -->
+  <section class="screen welcome" id="screen-welcome" aria-labelledby="welcome-title">
+    <div class="welcome-copy">
+      <p class="eyebrow mono" data-i18n="eyebrow">REVISOR DE FACTURAS · RNC · NCF · ITBIS</p>
+      <h1 id="welcome-title" data-i18n="title">Revisa tus facturas antes de declarar.</h1>
+      <p class="lead" data-i18n="lead">Suelta tu Excel o CSV y en segundos verás qué RNC, NCF o ITBIS tienen errores, y cómo corregirlos.</p>
+
+      <div class="drop" id="drop">
+        <input type="file" id="file" class="sr-only" accept=".xlsx,.xlsm,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
+        <div class="drop-paper" aria-hidden="true"><i></i><i></i><i></i></div>
+        <p class="drop-title" id="drop-title" data-i18n="dropTitle">Arrastra tu archivo aquí</p>
+        <p class="drop-or"><span data-i18n="dropOr">o</span></p>
+        <label for="file" class="btn btn-primary" id="pick" data-i18n="dropButton">Elegir archivo</label>
+        <p class="drop-hint mono" data-i18n="dropHint">.xlsx o .csv · una fila por cada línea de factura</p>
+      </div>
+
+      <p class="privacy"><span class="dot" aria-hidden="true"></span><strong data-i18n="privacy">Tu archivo nunca sale de tu navegador.</strong>
+        <span data-i18n="privacyDetail">La revisión corre en esta página con Python (Pyodide). No se sube a ningún servidor ni se conecta a la DGII.</span></p>
+
+      <ul class="links">
+        <li><a href="plantilla_facturas.xlsx" download data-i18n="template">Descargar plantilla (.xlsx)</a></li>
+        <li><button type="button" class="linklike" id="try-example" data-i18n="example">Probar con un archivo de ejemplo</button></li>
+      </ul>
+      <p class="warm mono" id="warm" aria-hidden="true"></p>
+    </div>
+    <figure class="welcome-art">
+      <img src="ilustracion.webp" width="900" height="600" data-i18n-alt="illustrationAlt"
+           alt="Un niño revisa una factura con una lupa junto a un gecko verde sentado sobre una pila de papeles. La factura tiene tres marcas verdes y una roja.">
+    </figure>
+  </section>
+
+  <!-- 2. Loading -->
+  <section class="screen loading" id="screen-loading" hidden aria-labelledby="loading-title">
+    <div class="panel loading-panel">
+      <p class="eyebrow mono" data-i18n="loadingEyebrow">UN MOMENTO</p>
+      <h1 class="h2" id="loading-title" data-i18n="loadingTitle">Preparando la revisión</h1>
+      <p class="loading-file mono" id="loading-file"></p>
+      <div class="bar" aria-hidden="true"><span id="bar-fill"></span></div>
+      <ol class="steps" id="steps">
+        <li data-step="python"><span class="step-mark" aria-hidden="true"></span><span data-i18n="stepPython">Descargando Python (Pyodide)</span></li>
+        <li data-step="pandas"><span class="step-mark" aria-hidden="true"></span><span data-i18n="stepPandas">Cargando pandas y PyYAML</span></li>
+        <li data-step="libs"><span class="step-mark" aria-hidden="true"></span><span data-i18n="stepLibs">Instalando openpyxl y python-stdnum</span></li>
+        <li data-step="rules"><span class="step-mark" aria-hidden="true"></span><span data-i18n="stepRules">Cargando las reglas de la DGII</span></li>
+        <li data-step="check"><span class="step-mark" aria-hidden="true"></span><span data-i18n="stepCheck">Revisando tu archivo</span></li>
+      </ol>
+      <p class="loading-note" data-i18n="loadingNote">La primera vez el navegador descarga unos 16 MB (Python y pandas). Después quedan guardados y la revisión es mucho más rápida.</p>
+    </div>
+  </section>
+
+  <!-- Error -->
+  <section class="screen problem" id="screen-error" hidden aria-labelledby="error-title">
+    <div class="panel error-panel">
+      <p class="eyebrow mono eyebrow-error" data-i18n="errorEyebrow">NO SE PUDO REVISAR</p>
+      <h1 class="h2" id="error-title" tabindex="-1"></h1>
+      <div id="error-body" class="error-body"></div>
+      <div class="actions-row">
+        <button type="button" class="btn btn-primary" id="error-retry" data-i18n="tryAgain">Elegir otro archivo</button>
+        <a class="btn btn-ghost" href="plantilla_facturas.xlsx" download data-i18n="template">Descargar plantilla (.xlsx)</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Results -->
+  <section class="screen results" id="screen-results" hidden aria-labelledby="results-title">
+    <div class="results-head">
+      <div>
+        <p class="eyebrow mono" data-i18n="resultsEyebrow">RESULTADO</p>
+        <h1 class="h2" id="results-title" tabindex="-1"></h1>
+        <p class="meta mono" id="results-meta"></p>
+      </div>
+      <div class="results-buttons">
+        <button type="button" class="btn btn-primary" id="download" data-i18n="download">Descargar reporte Excel</button>
+        <button type="button" class="btn btn-ghost" id="again" data-i18n="again">Revisar otro archivo</button>
+      </div>
+    </div>
+
+    <p class="stale" id="stale" hidden></p>
+
+    <ul class="cards" id="cards"></ul>
+
+    <section class="block" aria-labelledby="todo-title">
+      <h2 class="block-title mono" id="todo-title" data-i18n="todo">QUÉ HACER AHORA</h2>
+      <ol class="todo" id="todo"></ol>
+    </section>
+
+    <section class="block" aria-labelledby="problems-title">
+      <div class="block-head">
+        <h2 class="block-title mono" id="problems-title"><span data-i18n="problems">PROBLEMAS</span> <span class="count" id="problems-count"></span></h2>
+        <div class="filters">
+          <div class="chips" role="group" aria-label="Severidad" data-i18n-aria="severityFilter" id="sev-chips"></div>
+          <label class="search">
+            <span class="sr-only" data-i18n="searchLabel">Buscar problemas</span>
+            <input type="search" id="search" autocomplete="off" data-i18n-placeholder="search" placeholder="Buscar fila, NCF o texto">
+          </label>
+        </div>
+      </div>
+      <div class="problems" id="problems" role="list"></div>
+      <p class="empty" id="problems-empty" hidden data-i18n="noMatch">Ningún problema coincide con el filtro.</p>
+      <button type="button" class="btn btn-ghost more" id="problems-more" hidden></button>
+    </section>
+
+    <section class="block" aria-labelledby="invoices-title">
+      <div class="block-head">
+        <h2 class="block-title mono" id="invoices-title"><span data-i18n="invoices">FACTURAS</span> <span class="count" id="invoices-count"></span></h2>
+        <div class="chips" role="group" aria-label="Estado" data-i18n-aria="statusFilter" id="row-chips"></div>
+      </div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Tabla de facturas" data-i18n-aria="tableLabel">
+        <table class="invoices" id="invoices"></table>
+      </div>
+      <p class="empty" id="invoices-note" hidden></p>
+    </section>
+  </section>
+</main>
+
+<footer class="notes">
+  <p class="disclaimer"><strong data-i18n="disclaimer">No es asesoría fiscal. Revisa estos resultados con tu contador antes de presentar cualquier declaración.</strong></p>
+  <p class="law"><span class="mono law-label">LEY 30-26</span> <span id="law-note" data-i18n="lawNote">La Ley 30-26 (junio 2026) agregó nuevas exenciones de ITBIS para bienes seleccionados, con efecto inmediato. Los resúmenes publicados de la reforma no indican cambios en las tasas de 18% / 16%, pero esto no se ha confirmado contra el texto de la ley. Esta herramienta no revisa listas de productos: si un producto podría estar exento ahora, o si tienes dudas sobre una tasa, confírmalo con tu contador.</span></p>
+  <p class="foot mono"><span data-i18n="foot">Código abierto (MIT) · Las mismas reglas que la versión de terminal</span> · <a href="https://github.com/alejandrocimentada/dr-facturacion">github.com/alejandrocimentada/dr-facturacion</a></p>
+</footer>
+
+<div class="drag-veil" id="drag-veil" aria-hidden="true"><p data-i18n="dropActive">Suelta para revisar</p></div>
+<p class="sr-only" id="live" aria-live="polite"></p>
+
+<script src="app.js"></script>
+</body>
+</html>
